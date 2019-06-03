@@ -1,0 +1,4 @@
+{
+    "dict": "../data/dict.txt",
+    "output": "../data/{}"
+}
