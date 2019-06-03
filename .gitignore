@@ -5,3 +5,5 @@
 
 data/input/*
 data/output/*
+
+src/__pycache__/*
