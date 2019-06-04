@@ -1,5 +1,10 @@
 {
-    "dict": "../data/dict.txt",
+    "userdict": "../data/dict.txt",
     "input_path": "../data/input/{}",
-    "output_path": "../data/output/{}"
+    "output_path": "../data/output/{}",
+    "policies": {
+        "variable": 5,
+        "constant": 10,
+        "others": -5
+    }
 }

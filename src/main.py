@@ -15,5 +15,7 @@ if __name__ == '__main__':
 
     # Begin to Annotate
     annotator = Annotator(config, args.form, args.path)
-    annotator.build()
-    print(annotator.features)
+    annotator.initialize()
+
+    formulas = annotator.transform()
+

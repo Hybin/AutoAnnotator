@@ -1,5 +1,4 @@
 from xml.etree import ElementTree
-from utils import *
 from tqdm import tqdm
 import re
 
@@ -38,7 +37,9 @@ class Processor(object):
         pattern, construction = '', {}
 
         components = self.form.split("+")
-        for component in tqdm(components, desc="Analyzing the construction"):
+        print("Analyzing the construction...")
+
+        for component in components:
             if re.search("[a-zA-Z]", component):
                 # Variable of Construction
                 pattern += "[^\W.]{1," + str(window) + "}?"
@@ -47,5 +48,6 @@ class Processor(object):
                 # Constant of Construction
                 pattern += component
                 construction[component] = 'constant'
+        print("done!")
 
         return pattern, construction
