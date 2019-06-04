@@ -1,4 +1,5 @@
 from xml.etree import ElementTree
+from utils import *
 from tqdm import tqdm
 import re
 
@@ -23,9 +24,10 @@ class Processor(object):
 
         # Get the sentence nodes by parsing the .xml file
         nodes = self._parse()
-
+        index = 0
         for node in tqdm(nodes, desc="Loading the raw material"):
-            sentences.append(node.text)
+            sentences.append((self.form + "_" + str(index), node.text))
+            index += 1
 
         return sentences
 

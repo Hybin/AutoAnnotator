@@ -1,4 +1,5 @@
 from config import Config
+from annotator import Annotator
 import argparse
 
 
@@ -12,3 +13,7 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--form", help="The abstract form of the construction")
     args = parser.parse_args()
 
+    # Begin to Annotate
+    annotator = Annotator(config, args.form, args.path)
+    annotator.build()
+    print(annotator.features)

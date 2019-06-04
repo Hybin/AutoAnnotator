@@ -7,3 +7,5 @@ data/input/*
 data/output/*
 
 src/__pycache__/*
+
+model/*
