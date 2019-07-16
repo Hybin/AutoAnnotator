@@ -28,6 +28,8 @@ class Processor(object):
             sentences.append((self.form + "_" + str(index), node.text))
             index += 1
 
+        print(sentences)
+
         return sentences
 
     def construct(self, window):

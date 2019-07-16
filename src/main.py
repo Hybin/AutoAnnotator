@@ -1,5 +1,6 @@
 from config import Config
 from annotator import Annotator
+import utils
 import argparse
 
 
@@ -17,5 +18,4 @@ if __name__ == '__main__':
     annotator = Annotator(config, args.form, args.path)
     annotator.initialize()
 
-    annotator.transform()
-
+    annotator.annotate()

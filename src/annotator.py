@@ -401,6 +401,7 @@ class Annotator(object):
         # Store the data
         data = []
         for sentence in results:
+            print(sentence)
             context, construction, content = "", [], []
             for word, label in sentence:
                 if label == "others":
