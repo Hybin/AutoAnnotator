@@ -44,10 +44,10 @@ def includes(clause, constants):
     :return: boolean True or False
     """
     for constant in constants:
-        if constant not in clause:
-            return False
+        if constant in clause:
+            return True
 
-    return True
+    return False
 
 
 def get(pairs, mark):

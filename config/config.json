@@ -2,6 +2,7 @@
     "userdict": "../data/dict.txt",
     "input_path": "../data/input/{}",
     "output_path": "../data/output/{}",
+    "output_pipe": "../data/output/pipeline/{}",
     "policies": {
         "variable": 5,
         "constant": 10,

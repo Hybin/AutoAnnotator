@@ -121,16 +121,17 @@ class Annotator(object):
 
         return "others"
 
-    def _judge(self, segments, word, sentence):
+    def _judge(self, segments, word, sentence, count):
         """
         Observe the series when the construction **do** contain X or Y
         :param segments: an array of clauses which contains X, Y or Z
         :param word: string
         :param sentence: string
+        :param count: the index of word in sentence
         :return: the type of the word
         """
         for segment in segments:
-            if word not in segment:
+            if sentence.index(segment) + len(segment) < count or count < sentence.index(segment):
                 continue
             else:
                 if word in self.construction.keys():
@@ -170,8 +171,8 @@ class Annotator(object):
         segments = self._complex(sentence)
 
         for word, tag in zip(words, tags):
-            if len(segments) > 0 and words.index(word) >= sentence.index(segments[0]):
-                step = self._judge(segments, word, sentence)
+            if len(segments) > 0 and utils.contains(["X", "Y", "Z"], self.construction):
+                step = self._judge(segments, word, sentence, count)
             else:
                 step = self._observe(word, tag, count, sentence, feature[str(count)])
 
@@ -181,13 +182,14 @@ class Annotator(object):
             feature[str(count)]["policy"] = score
             if score < 0 and feature[str(count)]["regex"] == 1.5:
                 feature[str(count)]["regex"] = 0.5
+
             shared = self.agree()
 
             if word in shared:
                 feature[str(count)]["agree"] = 1
 
-            if step == "variable":
-                if "X" in shared:
+            if step == "variable" and len(shared) > 0:
+                if "X" or "Y" or "Z" in shared:
                     feature[str(count)]["agree"] = 1
                 elif tag in shared:
                     feature[str(count)]["agree"] = 1
@@ -261,7 +263,7 @@ class Annotator(object):
         formulas, arguments, temp = self.fit()
 
         print("Get the candidate by derivation")
-        for mark, formula in formulas[4:5]:
+        for mark, formula in formulas:
             feature = self.features[mark]
 
             # Derivation
@@ -358,10 +360,12 @@ class Annotator(object):
                         else:
                             series.append((word["value"], "others"))
                     elif word["tag"] == "variable":
-                        if word["regex"] != 1 or word["deriv"] != 1:
+                        if word["agree"] == 1 and (word["regex"] != 1 or word["deriv"] != 1):
                             series.append((word["value"], "variable"))
-                        else:
+                        elif word["regex"] == 1 and word["deriv"] == 1:
                             series.append((word["value"], "others"))
+                        else:
+                            series.append((word["value"], "variable"))
                     else:
                         if word["regex"] != 1:
                             series.append((word["value"], "variable"))
@@ -370,12 +374,14 @@ class Annotator(object):
 
                 if classes[label] == "constant":
                     if word["tag"] == "constant":
-                        if word["regex"] != 1 and word["deriv"] != 1:
+                        if word["regex"] != 1 or word["deriv"] != 1:
                             series.append((word["value"], "constant"))
                         else:
                             series.append((word["value"], "others"))
                     elif word["tag"] == "variable":
-                        if word["regex"] != 1 and word["deriv"] != 1:
+                        if word["agree"] == 1:
+                            series.append((word["value"], "variable"))
+                        elif word["regex"] != 1 and word["deriv"] != 1:
                             series.append((word["value"], "variable"))
                         else:
                             series.append((word["value"], "others"))
@@ -386,11 +392,14 @@ class Annotator(object):
                     if word["tag"] == "constant":
                         series.append((word["value"], "constant"))
                     else:
-                        if word["regex"] == 1 and word["deriv"] == 1:
+                        if word["regex"] == 1 and word["agree"] == 0:
+                            series.append((word["value"], "others"))
+                        elif word["regex"] == 1 and word["deriv"] == 1:
                             series.append((word["value"], "others"))
                         else:
                             series.append((word["value"], "variable"))
 
+            # Hypothesis I: the length of construction cannot be 1
             for i in range(1, len(series) - 1):
                 if series[i - 1][1] == "others" and series[i + 1][1] == "others":
                     series[i] = (series[i][0], "others")
@@ -401,8 +410,7 @@ class Annotator(object):
         # Store the data
         data = []
         for sentence in results:
-            print(sentence)
-            context, construction, content = "", [], []
+            context, construction, content, count = "", [], [], 0
             for word, label in sentence:
                 if label == "others":
                     if len(construction) > 0:
@@ -415,11 +423,24 @@ class Annotator(object):
                     context = ""
                     construction.append((word, label))
 
-                if sentence.index((word, label)) == len(sentence) - 1:
+                if count >= len(sentence) - 1:
                     if len(construction) > 0:
                         content.append((construction, "cxn"))
                     if len(context) > 0:
                         content.append((context, "context"))
+
+                count += 1  # It is necessary to get the loop times
+
+                # Hypothesis II: if the length of construction is smaller than that of form,
+                # it could not be an instance of construction
+                for j in range(len(content)):
+                    if content[j][1] == 'cxn' and len(content[j][0]) < self._length:
+                        temp = ""
+
+                        for w, l in content[j][0]:
+                            temp += w
+                        content[j] = (temp, 'context')
+
             data.append(content)
 
         return data
@@ -427,7 +448,7 @@ class Annotator(object):
     def store(self):
         data = self.annotate()
 
-        with open(self.conf.output_path.format(self.form + "_" + self.path), "w") as out:
+        with open(self.conf.output_path.format(self.path), "w") as out:
             # Write the metadata
             out.write('<?xml version="1.0" encoding="UTF-8"?>' + "\n")
             # Write the root tag
